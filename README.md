@@ -33,3 +33,43 @@ After:
 ```
 https://open.spotify.com/track/0ibuggkWTSDXHo25S0Qqvj
 ```
+
+## Usage example
+This repository also contains a Nix flake. It can be used in a NixOS configuration like this:  
+1. Add flake to inputs:
+```nix
+url-eater.url = "github:AgathaSorceress/url-eater";
+```
+2. Add package
+```nix
+nixpkgs.overlays = [
+  (final: prev: {
+    url-eater = url-eater.defaultPackage.${final.system};
+  })
+];
+```
+3. Add a module that defines a systemd service:
+```nix
+{ pkgs, ... }:
+let
+  filters = pkgs.writeText "filters.kdl" ''
+    category "Spotify" {
+    	params "context@open.spotify.com" "si@open.spotify.com"
+    }
+    category "Twitter" {
+    	params "cxt@*.twitter.com" "ref_*@*.twitter.com" "s@*.twitter.com" "t@*.twitter.com" "twclid"
+    }
+  '';
+in {
+  systemd.user.services."url-eater" = {
+    description = "Clipboard URL cleanup service";
+
+    after = [ "graphical-session-pre.target" ];
+    wantedBy = [ "graphical-session.target" ];
+
+    script = ''
+      exec ${pkgs.url-eater}/bin/url-eater ${filters}
+    '';
+  };
+}
+```
