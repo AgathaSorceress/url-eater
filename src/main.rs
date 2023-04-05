@@ -13,23 +13,23 @@ struct Category {
 }
 
 fn main() -> Result<()> {
-    // Get configuration file path
-    let config = env::args()
+    // Get filter file path
+    let filters = env::args()
         .nth(1)
-        .ok_or_else(|| miette!("Please provide a path to a KDL file with blocked parameters"))?;
+        .ok_or_else(|| miette!("Please provide a path to a KDL file with parameter filters"))?;
 
-    // Read configurtaion file
-    let config = fs::read_to_string(&config)
+    // Read filter file
+    let filters = fs::read_to_string(&filters)
         .into_diagnostic()
-        .map_err(|err| err.context(format!("Could not read file `{config}`")))?;
+        .map_err(|err| err.context(format!("Could not read file `{filters}`")))?;
 
-    let config = knuffel::parse::<Vec<Category>>("config.kdl", &config)?;
+    let filters = knuffel::parse::<Vec<Category>>("config.kdl", &filters)?;
 
     println!("Loaded with categories:");
-    config.iter().for_each(|v| println!("\t• {}", v.name));
+    filters.iter().for_each(|v| println!("\t• {}", v.name));
 
     // Flatten all patterns into a single list, as categories do not matter
-    let patterns: Vec<String> = config.iter().map(|v| v.params.clone()).flatten().collect();
+    let patterns: Vec<String> = filters.iter().map(|v| v.params.clone()).flatten().collect();
 
     // Initialize clipboard context
     let mut clipboard = ClipboardContext::new()
