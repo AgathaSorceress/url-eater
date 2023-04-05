@@ -1,10 +1,11 @@
 [package]
 name = "url-eater"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Agatha V. Lovelace <agatha@technogothic.net>"]
 description = "Strip unneeded parameters from URLs copied to clipboard"
 license = "NVPLv7+"
+rust-version = "1.65"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
