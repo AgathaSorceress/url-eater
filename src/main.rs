@@ -46,49 +46,57 @@ fn main() -> Result<()> {
                 // Clipboard changed
                 if contents != last_contents {
                     last_contents = contents.clone();
-
-                    if let Ok(mut url) = Url::parse(&contents) {
-                        // Skip URLs without a host
-                        let url_inner = url.clone();
-                        let Some(host) = url_inner.host_str() else { continue };
-
-                        for pattern in &patterns {
-                            let url_inner = url.clone();
-                            match pattern.split_once('@') {
-                                Some((param, domain)) => {
-                                    if WildMatch::new(domain).matches(host) {
-                                        // Filter parameters to exclude blocked entries
-                                        let query = url_inner
-                                            .query_pairs()
-                                            .filter(|x| !WildMatch::new(param).matches(&x.0));
-                                        // Replace parameters in URL
-                                        url.query_pairs_mut().clear().extend_pairs(query);
-                                    }
-                                }
-                                None => {
-                                    // Filter parameters to exclude blocked entries
-                                    let query = url_inner
-                                        .query_pairs()
-                                        .filter(|x| !WildMatch::new(pattern).matches(&x.0));
-                                    // Replace parameters in URL
-                                    url.query_pairs_mut().clear().extend_pairs(query);
-                                }
-                            }
-                        }
-
-                        // Handle dangling ?s when no query pairs are appended
-                        let url = url.as_str().trim_end_matches("?").to_owned();
-
+                    if let Ok(url) = clean_url(contents, &patterns) {
                         // Update clipboard
                         clipboard.set_contents(url.clone()).map_err(|e| {
                             miette!(format!("Couldn't set clipboard contents: {e}"))
                         })?;
                         last_contents = url;
                     };
-                }
+                };
             }
             // Empty clipboard (Mac, Windows)
             Err(_) => continue,
         };
+    }
+}
+
+fn clean_url(text: String, patterns: &Vec<String>) -> Result<String> {
+    if let Ok(mut url) = Url::parse(&text) {
+        let url_inner = url.clone();
+
+        // Skip URLs without a host
+        let Some(host) = url_inner.host_str() else { return Err(miette!("URL {} does not have a host", url_inner)) };
+
+        for pattern in patterns {
+            let url_inner = url.clone();
+            match pattern.split_once('@') {
+                Some((param, domain)) => {
+                    if WildMatch::new(domain).matches(host) {
+                        // Filter parameters to exclude blocked entries
+                        let query = url_inner
+                            .query_pairs()
+                            .filter(|x| !WildMatch::new(param).matches(&x.0));
+                        // Replace parameters in URL
+                        url.query_pairs_mut().clear().extend_pairs(query);
+                    }
+                }
+                None => {
+                    // Filter parameters to exclude blocked entries
+                    let query = url_inner
+                        .query_pairs()
+                        .filter(|x| !WildMatch::new(pattern).matches(&x.0));
+                    // Replace parameters in URL
+                    url.query_pairs_mut().clear().extend_pairs(query);
+                }
+            }
+        }
+
+        // Handle dangling ?s when no query pairs are appended
+        let url = url.as_str().trim_end_matches("?").to_owned();
+
+        Ok(url)
+    } else {
+        Err(miette!("Contents are not a valid URL"))
     }
 }
