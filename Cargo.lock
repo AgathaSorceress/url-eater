@@ -376,6 +376,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "lru"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e999beba7b6e8345721bd280141ed958096a2e4abdf74f67ff4ce49b4b54e47a"
+dependencies = [
+ "hashbrown",
+]
+
+[[package]]
 name = "malloc_buf"
 version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -397,6 +406,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "memoize"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b2ae6b7c9fbefd9bad492a5c65013e9fd10d6db3f971ee1e2d1c55485dd5135"
+dependencies = [
+ "lazy_static",
+ "lru",
+ "memoize-inner",
+]
+
+[[package]]
+name = "memoize-inner"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bfde264c318ec8c2de5c39e0ba3910fac8d1065e3b947b183ebd884b799719b"
+dependencies = [
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -843,6 +875,7 @@ version = "0.1.1"
 dependencies = [
  "cli-clipboard",
  "knuffel",
+ "memoize",
  "miette",
  "url",
  "wildmatch",

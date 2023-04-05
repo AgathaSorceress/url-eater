@@ -1,4 +1,5 @@
 use cli_clipboard::{ClipboardContext, ClipboardProvider};
+use memoize::memoize;
 use miette::{miette, IntoDiagnostic, Result};
 use std::{env, fs};
 use url::Url;
@@ -46,7 +47,7 @@ fn main() -> Result<()> {
                 // Clipboard changed
                 if contents != last_contents {
                     last_contents = contents.clone();
-                    if let Ok(url) = clean_url(contents, &patterns) {
+                    if let Ok(url) = clean_url(contents, patterns.clone()) {
                         // Update clipboard
                         clipboard.set_contents(url.clone()).map_err(|e| {
                             miette!(format!("Couldn't set clipboard contents: {e}"))
@@ -61,14 +62,15 @@ fn main() -> Result<()> {
     }
 }
 
-fn clean_url(text: String, patterns: &Vec<String>) -> Result<String> {
+#[memoize(Capacity: 1024)]
+fn clean_url(text: String, patterns: Vec<String>) -> Result<String, String> {
     if let Ok(mut url) = Url::parse(&text) {
         let url_inner = url.clone();
 
         // Skip URLs without a host
-        let Some(host) = url_inner.host_str() else { return Err(miette!("URL {} does not have a host", url_inner)) };
+        let Some(host) = url_inner.host_str() else { return Err(format!("URL {} does not have a host", url_inner)) };
 
-        for pattern in patterns {
+        for pattern in &patterns {
             let url_inner = url.clone();
             match pattern.split_once('@') {
                 Some((param, domain)) => {
@@ -97,6 +99,6 @@ fn clean_url(text: String, patterns: &Vec<String>) -> Result<String> {
 
         Ok(url)
     } else {
-        Err(miette!("Contents are not a valid URL"))
+        Err(format!("Contents are not a valid URL"))
     }
 }
