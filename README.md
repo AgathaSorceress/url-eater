@@ -73,3 +73,16 @@ in {
   };
 }
 ```
+
+## Building from source
+Clone this repository, then run:
+```sh
+cargo build --release
+```
+You will need Rust 1.65 or newer.  
+The output binary will be in `target/release/url-eater`  
+
+Alternatively,
+```sh
+nix build github:AgathaSorceress/url-eater
+```
