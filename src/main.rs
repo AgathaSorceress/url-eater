@@ -9,6 +9,8 @@ use wildmatch::WildMatch;
 struct Category {
     #[knuffel(argument)]
     name: String,
+    #[knuffel(property, default)]
+    disabled: bool,
     #[knuffel(child, unwrap(arguments))]
     params: Vec<String>,
 }
@@ -24,12 +26,15 @@ fn main() -> Result<()> {
         .into_diagnostic()
         .map_err(|err| err.context(format!("Could not read file `{filters}`")))?;
 
-    let filters = knuffel::parse::<Vec<Category>>("config.kdl", &filters)?;
+    let filters = knuffel::parse::<Vec<Category>>("config.kdl", &filters)?
+        .into_iter()
+        .filter(|v| !v.disabled)
+        .collect::<Vec<Category>>();
 
     println!("Loaded with categories:");
     filters.iter().for_each(|v| println!("\t• {}", v.name));
 
-    // Flatten all patterns into a single list, as categories do not matter
+    // Flatten filters into patterns
     let patterns: Vec<String> = filters.iter().map(|v| v.params.clone()).flatten().collect();
 
     // Initialize clipboard context

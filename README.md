@@ -14,8 +14,11 @@ category "Spotify" {
 category "Campaign tracking (itm)" {
 	params "itm_*"
 }
+category "Campaign tracking (stm)" disabled=true {
+	params "stm_*"
+}
 ```
-Categories do not have significance other than to make filter files better structured. 
+Categories are used to structure filter lists and allow disabling/enabling filters in groups. 
 Each parameter applies to all URLs, unless a domain like `@example.com` is specified at the end. 
 Both the parameter and the domain parts can contain wildcards. Use `*` to match 0 or more characters, and `?` to match exactly one character.  
 The structure is based on [NeatURL's format](https://github.com/Smile4ever/Neat-URL/#default-blocked-parameters), with a few differences (aside from a different file format):  
