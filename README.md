@@ -42,12 +42,17 @@ This repository also contains a Nix flake. It can be used in a NixOS configurati
 1. Add flake to inputs:
 ```nix
 url-eater.url = "github:AgathaSorceress/url-eater";
+url-eater.inputs.nixpkgs.follows = "nixpkgs"; #optional
 ```
-2. Import NixOS module
+2. Adding output: 
+```nix
+  outputs = inputs@{ self, nixpkgs, url-eater, ... }:
+```
+3. Import NixOS module
 ```nix
 imports = [ url-eater.nixosModule ];
 ```
-3. Configure the module:
+4. Configure the module:
 ```nix
 { ... }: {
   services.url-eater = {
