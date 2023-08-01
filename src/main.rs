@@ -46,6 +46,7 @@ fn main() -> Result<()> {
             Ok(contents) => {
                 // Empty clipboard (Linux)
                 if contents.is_empty() {
+                    std::thread::sleep(std::time::Duration::from_millis(250));
                     continue;
                 };
 
@@ -62,7 +63,10 @@ fn main() -> Result<()> {
                 };
             }
             // Empty clipboard (Mac, Windows)
-            Err(_) => continue,
+            Err(_) => {
+                std::thread::sleep(std::time::Duration::from_millis(250));
+                continue;
+            }
         };
     }
 }
