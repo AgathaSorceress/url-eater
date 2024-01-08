@@ -11,8 +11,8 @@
         pkgs = import nixpkgs { inherit system; };
         naersk-lib = pkgs.callPackage naersk { };
       in {
-        defaultPackage = naersk-lib.buildPackage ./.;
-        devShell = with pkgs;
+        packages.default = naersk-lib.buildPackage ./.;
+        devShells.default = with pkgs;
           mkShell {
             buildInputs = [
               cargo
@@ -25,7 +25,7 @@
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
           };
       }) // {
-        nixosModule = { config, lib, pkgs, ... }:
+        nixosModules.default = { config, lib, pkgs, ... }:
           with lib;
           let cfg = config.services.url-eater;
           in {
