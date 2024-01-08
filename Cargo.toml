@@ -1,6 +1,6 @@
 [package]
 name = "url-eater"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 authors = ["Agatha V. Lovelace <agatha@technogothic.net>"]
 description = "Strip unneeded parameters from URLs copied to clipboard"
