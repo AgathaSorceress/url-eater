@@ -5,12 +5,12 @@ edition = "2021"
 authors = ["Agatha V. Lovelace <agatha@technogothic.net>"]
 description = "Strip unneeded parameters from URLs copied to clipboard"
 license = "NVPLv7+"
-rust-version = "1.65"
+rust-version = "1.66.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cli-clipboard = "0.4.0"
+arboard = { version = "3.3.0", features = ["wayland-data-control"] }
 knuffel = "3.0.0"
 memoize = { version = "0.4.0", features = ["full"] }
 miette = { version = "5.7.0", features = ["fancy"] }

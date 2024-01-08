@@ -1,4 +1,4 @@
-use cli_clipboard::{ClipboardContext, ClipboardProvider};
+use arboard::Clipboard;
 use memoize::memoize;
 use miette::{miette, IntoDiagnostic, Result};
 use std::{env, fs};
@@ -32,41 +32,40 @@ fn main() -> Result<()> {
         .collect::<Vec<Category>>();
 
     println!("Loaded with categories:");
-    filters.iter().for_each(|v| println!("\t• {}", v.name));
+    for filter in &filters {
+        println!("\t• {}", filter.name);
+    }
 
     // Flatten filters into patterns
-    let patterns: Vec<String> = filters.iter().map(|v| v.params.clone()).flatten().collect();
+    let patterns: Vec<String> = filters.iter().flat_map(|v| v.params.clone()).collect();
 
     // Initialize clipboard context
-    let mut clipboard = ClipboardContext::new()
+    let mut clipboard = Clipboard::new()
         .map_err(|e| miette!(format!("Could not initialize clipboard context: {e}")))?;
-    let mut last_contents = clipboard.get_contents().unwrap_or_else(|_| String::new());
+    let mut last_contents = clipboard.get_text().unwrap_or_else(|_| String::new());
     loop {
-        match clipboard.get_contents() {
-            Ok(contents) => {
-                // Empty clipboard (Linux)
-                if contents.is_empty() {
-                    std::thread::sleep(std::time::Duration::from_millis(250));
-                    continue;
-                };
-
-                // Clipboard changed
-                if contents != last_contents {
-                    last_contents = contents.clone();
-                    if let Ok(url) = clean_url(contents, patterns.clone()) {
-                        // Update clipboard
-                        clipboard.set_contents(url.clone()).map_err(|e| {
-                            miette!(format!("Couldn't set clipboard contents: {e}"))
-                        })?;
-                        last_contents = url;
-                    };
-                };
-            }
-            // Empty clipboard (Mac, Windows)
-            Err(_) => {
+        if let Ok(contents) = clipboard.get_text() {
+            // Empty clipboard (Linux)
+            if contents.is_empty() {
                 std::thread::sleep(std::time::Duration::from_millis(250));
                 continue;
-            }
+            };
+
+            // Clipboard changed
+            if contents != last_contents {
+                last_contents = contents.clone();
+                if let Ok(url) = clean_url(contents, patterns.clone()) {
+                    // Update clipboard
+                    clipboard
+                        .set_text(url.clone())
+                        .map_err(|e| miette!(format!("Couldn't set clipboard contents: {e}")))?;
+                    last_contents = url;
+                };
+            };
+        } else {
+            // Empty clipboard (Mac, Windows)
+            std::thread::sleep(std::time::Duration::from_millis(250));
+            continue;
         };
     }
 }
@@ -77,7 +76,9 @@ fn clean_url(text: String, patterns: Vec<String>) -> Result<String, String> {
         let url_inner = url.clone();
 
         // Skip URLs without a host
-        let Some(host) = url_inner.host_str() else { return Err(format!("URL {} does not have a host", url_inner)) };
+        let Some(host) = url_inner.host_str() else {
+            return Err(format!("URL {url_inner} does not have a host"));
+        };
 
         for pattern in &patterns {
             let url_inner = url.clone();
@@ -104,10 +105,10 @@ fn clean_url(text: String, patterns: Vec<String>) -> Result<String, String> {
         }
 
         // Handle dangling ?s when no query pairs are appended
-        let url = url.as_str().trim_end_matches("?").to_owned();
+        let url = url.as_str().trim_end_matches('?').to_owned();
 
         Ok(url)
     } else {
-        Err(format!("Contents are not a valid URL"))
+        Err(String::from("Contents are not a valid URL"))
     }
 }
