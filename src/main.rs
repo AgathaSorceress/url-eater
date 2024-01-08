@@ -1,7 +1,7 @@
 use arboard::Clipboard;
 use memoize::memoize;
 use miette::{miette, IntoDiagnostic, Result};
-use std::{env, fs};
+use std::{env, fs, time::Duration};
 use url::Url;
 use wildmatch::WildMatch;
 
@@ -14,6 +14,9 @@ struct Category {
     #[knuffel(child, unwrap(arguments))]
     params: Vec<String>,
 }
+
+/// How often should clipboard be checked for changes (0 will result in high CPU usage)
+const ITERATION_DELAY: Duration = Duration::from_millis(250);
 
 fn main() -> Result<()> {
     // Get filter file path
@@ -44,10 +47,10 @@ fn main() -> Result<()> {
         .map_err(|e| miette!(format!("Could not initialize clipboard context: {e}")))?;
     let mut last_contents = clipboard.get_text().unwrap_or_else(|_| String::new());
     loop {
+        std::thread::sleep(ITERATION_DELAY);
         if let Ok(contents) = clipboard.get_text() {
             // Empty clipboard (Linux)
             if contents.is_empty() {
-                std::thread::sleep(std::time::Duration::from_millis(250));
                 continue;
             };
 
@@ -62,11 +65,7 @@ fn main() -> Result<()> {
                     last_contents = url;
                 };
             };
-        } else {
-            // Empty clipboard (Mac, Windows)
-            std::thread::sleep(std::time::Duration::from_millis(250));
-            continue;
-        };
+        }
     }
 }
 
