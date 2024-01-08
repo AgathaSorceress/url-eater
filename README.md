@@ -50,7 +50,7 @@ url-eater.inputs.nixpkgs.follows = "nixpkgs"; #optional
 ```
 3. Import NixOS module
 ```nix
-imports = [ url-eater.nixosModule ];
+imports = [ url-eater.nixosModules.default ];
 ```
 4. Configure the module:
 ```nix
