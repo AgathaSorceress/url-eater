@@ -42,7 +42,7 @@ This repository also contains a Nix flake. It can be used in a NixOS configurati
 1. Add flake to inputs:
 ```nix
 url-eater.url = "github:AgathaSorceress/url-eater";
-url-eater.inputs.nixpkgs.follows = "nixpkgs"; #optional
+url-eater.inputs.nixpkgs.follows = "nixpkgs"; # optional
 ```
 2. Adding output: 
 ```nix
@@ -74,7 +74,6 @@ Clone this repository, then run:
 ```sh
 cargo build --release
 ```
-You will need Rust 1.65 or newer.  
 The output binary will be in `target/release/url-eater`  
 
 Alternatively,
