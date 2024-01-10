@@ -50,7 +50,7 @@
             config = mkIf cfg.enable {
               systemd.user.services."url-eater" = let
                 filters = pkgs.writeText "filters.kdl" cfg.filters;
-                pkg = self.defaultPackage.${pkgs.system};
+                pkg = self.packages.${pkgs.system}.default;
               in {
                 description = "Clipboard URL cleanup service";
 
