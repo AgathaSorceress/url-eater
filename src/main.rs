@@ -61,6 +61,11 @@ fn clean_url(text: String, patterns: Vec<String>) -> Result<String, String> {
         return Err(format!("URL {url_inner} does not have a host"));
     };
 
+    // Handle URLs without query parameters
+    if url.query().is_none() {
+        return Ok(url.to_string());
+    }
+
     for pattern in &patterns {
         let url_inner = url.clone();
         if let Some((param, domain)) = pattern.split_once('@') {
@@ -82,8 +87,5 @@ fn clean_url(text: String, patterns: Vec<String>) -> Result<String, String> {
         }
     }
 
-    // Handle dangling ?s when no query pairs are appended
-    let url = url.as_str().trim_end_matches('?').to_owned();
-
-    Ok(url)
+    Ok(url.to_string())
 }
