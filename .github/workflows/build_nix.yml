@@ -27,3 +27,5 @@ jobs:
       - uses: cachix/install-nix-action@v23
       - name: Lint
         run: nix develop --command cargo clippy --all-targets --all-features
+      - name: Test
+        run: nix develop --command cargo test

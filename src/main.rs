@@ -1,12 +1,15 @@
 use arboard::Clipboard;
 use memoize::memoize;
 use miette::{miette, Result};
-use std::{env, time::Duration};
+use std::{borrow::Cow, env, time::Duration};
 use url::Url;
 use wildmatch::WildMatch;
 
 mod config;
 use config::Config;
+
+#[cfg(test)]
+mod tests;
 
 /// How often should clipboard be checked for changes (0 will result in high CPU usage)
 const ITERATION_DELAY: Duration = Duration::from_millis(250);
@@ -61,11 +64,6 @@ fn clean_url(text: String, patterns: Vec<String>) -> Result<String, String> {
         return Err(format!("URL {url_inner} does not have a host"));
     };
 
-    // Handle URLs without query parameters
-    if url.query().is_none() {
-        return Ok(url.to_string());
-    }
-
     for pattern in &patterns {
         let url_inner = url.clone();
         if let Some((param, domain)) = pattern.split_once('@') {
@@ -75,7 +73,7 @@ fn clean_url(text: String, patterns: Vec<String>) -> Result<String, String> {
                     .query_pairs()
                     .filter(|x| !WildMatch::new(param).matches(&x.0));
                 // Replace parameters in URL
-                url.query_pairs_mut().clear().extend_pairs(query);
+                replace_query(&mut url, query);
             }
         } else {
             // Filter parameters to exclude blocked entries
@@ -83,9 +81,23 @@ fn clean_url(text: String, patterns: Vec<String>) -> Result<String, String> {
                 .query_pairs()
                 .filter(|x| !WildMatch::new(pattern).matches(&x.0));
             // Replace parameters in URL
-            url.query_pairs_mut().clear().extend_pairs(query);
+            replace_query(&mut url, query);
         }
     }
 
     Ok(url.to_string())
+}
+
+fn replace_query<'a>(
+    url: &mut Url,
+    query_pairs: impl IntoIterator<Item = (Cow<'a, str>, Cow<'a, str>)>,
+) {
+    url.set_query(None);
+    for (k, v) in query_pairs {
+        if v.is_empty() {
+            url.query_pairs_mut().append_key_only(&k);
+        } else {
+            url.query_pairs_mut().append_pair(&k, &v);
+        }
+    }
 }
