@@ -6,14 +6,26 @@
     utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, utils, naersk }:
-    utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      utils,
+      naersk,
+    }:
+    utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
         naersk-lib = pkgs.callPackage naersk { };
-      in {
-        packages.default = naersk-lib.buildPackage ./.;
-        devShells.default = with pkgs;
+      in
+      {
+        packages.default = naersk-lib.buildPackage {
+          src = ./.;
+          buildInputs = with pkgs; lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.AppKit ];
+        };
+        devShells.default =
+          with pkgs;
           mkShell {
             buildInputs = [
               cargo
@@ -25,34 +37,46 @@
             ];
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
           };
-      }) // {
-        nixosModules.default = { config, lib, pkgs, ... }:
-          with lib;
-          let cfg = config.services.url-eater;
-          in {
-            options.services.url-eater = {
-              enable = mkEnableOption "Enables the URL Eater service";
-              filters = mkOption {
-                type = types.str;
-                example = ''
-                  category "Spotify" {
-                  	params "context@open.spotify.com" "si@open.spotify.com"
-                  }
-                  category "Twitter" {
-                  	params "cxt@*.twitter.com" "ref_*@*.twitter.com" "s@*.twitter.com" "t@*.twitter.com" "twclid"
-                  }
-                '';
-                description = mdDoc ''
-                  A list of filters to use, in the KDL file format.
-                '';
-              };
+      }
+    )
+    // {
+      nixosModules.default =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+        with lib;
+        let
+          cfg = config.services.url-eater;
+        in
+        {
+          options.services.url-eater = {
+            enable = mkEnableOption "Enables the URL Eater service";
+            filters = mkOption {
+              type = types.str;
+              example = ''
+                category "Spotify" {
+                	params "context@open.spotify.com" "si@open.spotify.com"
+                }
+                category "Twitter" {
+                	params "cxt@*.twitter.com" "ref_*@*.twitter.com" "s@*.twitter.com" "t@*.twitter.com" "twclid"
+                }
+              '';
+              description = mdDoc ''
+                A list of filters to use, in the KDL file format.
+              '';
             };
+          };
 
-            config = mkIf cfg.enable {
-              systemd.user.services."url-eater" = let
+          config = mkIf cfg.enable {
+            systemd.user.services."url-eater" =
+              let
                 filters = pkgs.writeText "filters.kdl" cfg.filters;
                 pkg = self.packages.${pkgs.system}.default;
-              in {
+              in
+              {
                 description = "Clipboard URL cleanup service";
 
                 after = [ "graphical-session-pre.target" ];
@@ -62,7 +86,7 @@
                   exec ${pkg}/bin/url-eater ${filters}
                 '';
               };
-            };
           };
-      };
+        };
+    };
 }
