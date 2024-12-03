@@ -64,7 +64,7 @@
                 	params "cxt@*.twitter.com" "ref_*@*.twitter.com" "s@*.twitter.com" "t@*.twitter.com" "twclid"
                 }
               '';
-              description = mdDoc ''
+              description = ''
                 A list of filters to use, in the KDL file format.
               '';
             };
