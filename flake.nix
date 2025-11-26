@@ -74,7 +74,7 @@
             systemd.user.services."url-eater" =
               let
                 filters = pkgs.writeText "filters.kdl" cfg.filters;
-                pkg = self.packages.${pkgs.system}.default;
+                pkg = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
               in
               {
                 description = "Clipboard URL cleanup service";
