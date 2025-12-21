@@ -8,23 +8,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v23
+      - uses: actions/checkout@v6
+      - uses: samueldr/lix-gha-installer-action@f526e761e1ad201b0f4231f61a2a569f17bcc2ac
       - name: Building package
         run:  nix build
       - name: Get repository name
         run: echo "REPO_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
       - name: Get commit hash
         run:  echo "COMMIT_HASH=${GITHUB_SHA::6}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v6
         with:
           name: ${{ env.REPO_NAME }}-${{ env.COMMIT_HASH }}-x86_64-linux
           path: result/bin/${{ env.REPO_NAME }}
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v23
+      - uses: actions/checkout@v6
+      - uses: samueldr/lix-gha-installer-action@f526e761e1ad201b0f4231f61a2a569f17bcc2ac
       - name: Lint
         run: nix develop --command cargo clippy --all-targets --all-features
       - name: Test
