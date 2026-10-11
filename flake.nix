@@ -41,12 +41,15 @@
         final: _:
         let
           naersk-lib = final.callPackage naersk { };
+          withMeta = final.lib.addMetaAttrs { mainProgram = "url-eater"; };
         in
         {
-          url-eater = naersk-lib.buildPackage {
-            src = ./.;
-            buildInputs = with final; lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.AppKit ];
-          };
+          url-eater = withMeta (
+            naersk-lib.buildPackage {
+              src = ./.;
+              buildInputs = with final; lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.AppKit ];
+            }
+          );
         };
 
       nixosModules.default =
