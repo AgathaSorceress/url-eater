@@ -17,13 +17,10 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        naersk-lib = pkgs.callPackage naersk { };
       in
       {
-        packages.default = naersk-lib.buildPackage {
-          src = ./.;
-          buildInputs = with pkgs; lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.AppKit ];
-        };
+        packages.default = (pkgs.extend self.overlays.default).url-eater;
+
         devShells.default =
           with pkgs;
           mkShell {
@@ -40,6 +37,18 @@
       }
     )
     // {
+      overlays.default =
+        final: _:
+        let
+          naersk-lib = final.callPackage naersk { };
+        in
+        {
+          url-eater = naersk-lib.buildPackage {
+            src = ./.;
+            buildInputs = with final; lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.AppKit ];
+          };
+        };
+
       nixosModules.default =
         {
           config,
@@ -56,7 +65,7 @@
             enable = mkEnableOption "Enables the URL Eater service";
             filters = mkOption {
               type = types.str;
-              example = ''
+              example = /* kdl */ ''
                 category "Spotify" {
                 	params "context@open.spotify.com" "si@open.spotify.com"
                 }
@@ -71,10 +80,11 @@
           };
 
           config = mkIf cfg.enable {
+            nixpkgs.overlays = lib.mkBefore [ self.overlays.default ];
+
             systemd.user.services."url-eater" =
               let
                 filters = pkgs.writeText "filters.kdl" cfg.filters;
-                pkg = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
               in
               {
                 description = "Clipboard URL cleanup service";
@@ -83,7 +93,7 @@
                 wantedBy = [ "graphical-session.target" ];
 
                 script = ''
-                  exec ${pkg}/bin/url-eater ${filters}
+                  exec ${lib.getExe pkgs.url-eater} ${filters}
                 '';
               };
           };
