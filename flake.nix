@@ -47,7 +47,7 @@
           url-eater = withMeta (
             naersk-lib.buildPackage {
               src = ./.;
-              buildInputs = with final; lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.AppKit ];
+              buildInputs = with final; lib.optionals stdenv.hostPlatform.isDarwin [ apple-sdk ];
             }
           );
         };
