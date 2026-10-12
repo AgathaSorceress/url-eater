@@ -66,6 +66,7 @@
         {
           options.services.url-eater = {
             enable = mkEnableOption "Enables the URL Eater service";
+            package = mkPackageOption pkgs "url-eater" { };
             filters = mkOption {
               type = types.str;
               example = /* kdl */ ''
@@ -96,7 +97,7 @@
                 wantedBy = [ "graphical-session.target" ];
 
                 script = ''
-                  exec ${lib.getExe pkgs.url-eater} ${filters}
+                  exec ${lib.getExe cfg.package.url-eater} ${filters}
                 '';
               };
           };
