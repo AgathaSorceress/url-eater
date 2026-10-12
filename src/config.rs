@@ -1,13 +1,13 @@
 use miette::{IntoDiagnostic, Result};
 use std::{fs, ops::Deref};
 
-#[derive(knuffel::Decode, Debug)]
+#[derive(knus::Decode, Debug)]
 pub(crate) struct Category {
-    #[knuffel(argument)]
+    #[knus(argument)]
     pub name: String,
-    #[knuffel(property, default)]
+    #[knus(property, default)]
     disabled: bool,
-    #[knuffel(child, unwrap(arguments))]
+    #[knus(child, unwrap(arguments))]
     pub params: Vec<String>,
 }
 
@@ -20,7 +20,7 @@ impl Config {
             .into_diagnostic()
             .map_err(|err| err.context(format!("Could not read file `{path}`")))?;
 
-        let filters = knuffel::parse::<Vec<Category>>("config.kdl", &filters)?
+        let filters = knus::parse::<Vec<Category>>("config.kdl", &filters)?
             .into_iter()
             .filter(|v| !v.disabled)
             .collect::<Vec<Category>>();
