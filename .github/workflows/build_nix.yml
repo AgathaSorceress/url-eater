@@ -1,15 +1,37 @@
 on: push
-name: "Build Nix package on Ubuntu"
+name: CI
 
 env:
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-  build:
+  check:
+    name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: samueldr/lix-gha-installer-action@f526e761e1ad201b0f4231f61a2a569f17bcc2ac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d # v2026-05-15
+      - name: Lint
+        run: nix develop --command cargo clippy --all-targets --all-features
+      - name: Test
+        run: nix develop --command cargo test
+
+  build:
+    name: Build Artifacts
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: x86_64-linux
+          - runner: ubuntu-26.04-arm
+            target: aarch64-linux
+          - runner: macos-latest
+            target: aarch64-darwin
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: samueldr/lix-gha-installer-action@a0fee77b2a98bb7c5c0ed7ae6d6ad4903dbdad0d # v2026-05-15
       - name: Building package
         run:  nix build
       - name: Get repository name
@@ -18,14 +40,5 @@ jobs:
         run:  echo "COMMIT_HASH=${GITHUB_SHA::6}" >> $GITHUB_ENV
       - uses: actions/upload-artifact@v6
         with:
-          name: ${{ env.REPO_NAME }}-${{ env.COMMIT_HASH }}-x86_64-linux
+          name: ${{ env.REPO_NAME }}-${{ env.COMMIT_HASH }}-${{ matrix.target }}
           path: result/bin/${{ env.REPO_NAME }}
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: samueldr/lix-gha-installer-action@f526e761e1ad201b0f4231f61a2a569f17bcc2ac
-      - name: Lint
-        run: nix develop --command cargo clippy --all-targets --all-features
-      - name: Test
-        run: nix develop --command cargo test
