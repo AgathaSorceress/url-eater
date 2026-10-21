@@ -26,6 +26,7 @@
           mkShell {
             buildInputs = [
               cargo
+              cargo-audit
               rustc
               rustfmt
               pre-commit

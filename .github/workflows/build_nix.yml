@@ -15,6 +15,8 @@ jobs:
         run: nix develop --command cargo clippy --all-targets --all-features
       - name: Test
         run: nix develop --command cargo test
+      - name: Audit
+        run: nix develop --command cargo audit
 
   build:
     name: Build Artifacts

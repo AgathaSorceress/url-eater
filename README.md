@@ -46,7 +46,7 @@ url-eater.inputs.nixpkgs.follows = "nixpkgs"; # optional
 ```
 2. Adding output: 
 ```nix
-  outputs = inputs@{ self, nixpkgs, url-eater, ... }:
+outputs = inputs@{ self, nixpkgs, url-eater, ... }:
 ```
 3. Import NixOS module
 ```nix
