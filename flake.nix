@@ -98,7 +98,7 @@
                 wantedBy = [ "graphical-session.target" ];
 
                 script = ''
-                  exec ${lib.getExe cfg.package.url-eater} ${filters}
+                  exec ${lib.getExe cfg.package} ${filters}
                 '';
               };
           };
