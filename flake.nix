@@ -84,10 +84,10 @@
             };
           };
 
-          config = mkIf cfg.enable {
+          config = {
             nixpkgs.overlays = lib.mkBefore [ self.overlays.default ];
 
-            systemd.user.services."url-eater" =
+            systemd.user.services."url-eater" = lib.mkIf cfg.enable (
               let
                 filters = pkgs.writeText "filters.kdl" cfg.filters;
               in
@@ -100,7 +100,8 @@
                 script = ''
                   exec ${lib.getExe cfg.package} ${filters}
                 '';
-              };
+              }
+            );
           };
         };
     };
